@@ -34,7 +34,7 @@ SCAN.cloudScan =  function(options){
   });
 
   robotListener.subscribe((pos) =>{
-    // console.log("robot",pos)
+    console.log("robot",pos)
     this.poindCloud.updateRobotPos(pos);
   });
 
@@ -46,7 +46,7 @@ SCAN.cloudScan =  function(options){
   });
 
   cloudListener.subscribe((msg) =>{
-    // console.log("scan")
+    console.log("scan",msg)
     if(!isPointedCloud){
       this.poindCloud.scanTransform(msg);
     }else{

@@ -32,7 +32,6 @@ SCAN.cloudScan =  function(options){
     messageType: 'geometry_msgs/Pose',
     throttle_rate: SCAN.THROTTLE_RATE
   });
-
   robotListener.subscribe((pos) =>{
     // console.log("robot",pos)
     this.poindCloud.updateRobotPos(pos);
@@ -73,14 +72,14 @@ SCAN.topicShowAll = function(ros,dom){
   // var serverName = '/move_base';
   var parent_dom_id = dom
   var parent_dom = document.querySelector("#"+parent_dom_id);
-  parent_dom.innerHTML = parent_dom.innerHTML+`
-  <table class='table'>
-  <thead>
-    <tr class='head'><th>#</th><td>name</td><td>type</td><td class='tb_value'>value</td></tr>
-  </thead>
-  <thead id='Topics'>
-  </thead>
-</table>`;
+  console.log(parent_dom);
+  parent_dom.innerHTML = `<table class='table'>
+                            <thead>
+                              <tr class='head'><th>#</th><td>name</td><td>type</td><td class='tb_value'>value</td></tr>
+                            </thead>
+                            <thead id='Topics'>
+                            </thead>
+                          </table>`;
   var that = this;
 
   /* Util for beautify the result data.

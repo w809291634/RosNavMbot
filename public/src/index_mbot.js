@@ -32,33 +32,32 @@
     });
 
     // keyboard W A S D control the robot
-    controller = NAV.controller(ros, null, 'controller_show_div')
+    controller = NAV.controller(ros, '/cmd_vel', 'controller_show_div')
     
     // show topics
-    var showTopics = new SCAN.topicShowAll(ros,"show_all");
+    // var showTopics = new SCAN.topicShowAll(ros,"show_all");
     
-    // // pointCloud Scan
-    // cloudScan = new SCAN.cloudScan({
-    //   ros : ros,
-    //   robotName : '/robot_pose',
-    //   // scanName: '/scan',
-    //   // scanType: 'sensor_msgs/LaserScan',
-    //   scanName: '/move_base/global_costmap/obstacle_layer/clearing_endpoints',
-    //   scanType: 'sensor_msgs/PointCloud',
-    //   isPointedCloud: true
-    // })
+    // pointCloud Scan
+    cloudScan = new SCAN.cloudScan({
+      ros : ros,
+      robotName : '/robot_pose',
+      // scanName: '/scan',
+      // scanType: 'sensor_msgs/LaserScan',
+      scanName: '/move_base/local_costmap/lidar_layer/clearing_endpoints',
+      scanType: 'sensor_msgs/PointCloud',
+      isPointedCloud: true
+    })
     
-    
-    // ros.on('error', function(error) {
-    //   document.querySelector('#rosStatus').className = ("error_state");
-    //   document.querySelector('#rosStatus').innerText = "Error in the backend!";
-    //   console.log("[Rosbridge connect] ERROR:",error);
-    // });
+    ros.on('error', function(error) {
+      document.querySelector('#rosStatus').className = ("error_state");
+      document.querySelector('#rosStatus').innerText = "Error in the backend!";
+      console.log("[Rosbridge connect] ERROR:",error);
+    });
   
     // Find out exactly when we made a connection.
     ros.on('connection', function() {
       console.log('Connection made!');
-      showTopics.update();
+      // showTopics.update();
       viewer.scene.addChild(cloudScan.poindCloud);
       document.querySelector('#rosStatus').className = ("connected_state");
       document.querySelector('#rosStatus').innerText = " Connected.";
