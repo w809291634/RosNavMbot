@@ -36,8 +36,8 @@ NAV.Velocity = function(min_velocity,max_velocity,num_steps){
 NAV.controller = function(ros, name, showStatus){
   this.ros = ros;
   var num_steps = 4;
-  var angular_min = 0.7;
-  var angular_max = 1.2;
+  var angular_min = -1.0;
+  var angular_max = 1.0;
   this.name = name || '/cmd_vel';
   this.showStatus = showStatus || false;
   var kflag = false;
@@ -46,25 +46,27 @@ NAV.controller = function(ros, name, showStatus){
     38 : "Up",
     39 : "Right",
     40 : "Down", 
+
     65 : "Left",
     68 : "Right",
     87 : "Up",
     83 : "Down",
-    97 : "Left",
-    102 : "Right",
+
+    100 : "Left",
+    97  : "Right",
     119 : "Up",
     115 : "Down"
   }
   var cmdVel = new ROSLIB.Topic({ 
     ros : ros, 
-    name : name,  //'/cmd_vel_mux/input/teleop'
+    name : this.name,  //'/cmd_vel_mux/input/teleop'
     messageType : 'geometry_msgs/Twist' 
   });
   var movement_bindings = {
-    "Up": [0.2, 0],
-    "Left":  [0, 0.2],
-    "Right": [0, -0.2],
-    "Down": [-0.2, 0],
+    "Up": [0.5, 0],
+    "Left":  [0, 0.5],
+    "Right": [0, -0.5],
+    "Down": [-0.5, 0],
     "Stop": [0, 0]
   }
   var twist= new ROSLIB.Message({ 
@@ -75,13 +77,14 @@ NAV.controller = function(ros, name, showStatus){
   this._rotation =  new NAV.Velocity(angular_min, angular_max, num_steps);
  
   var get_twist = (linear, angular) => {
-    twist.linear.x = twist.linear.x + linear
+    // twist.linear.x = twist.linear.x + linear
+    twist.linear.x =  linear
     twist.angular.z = this._rotation.call(Math.sign(angular), Math.abs(angular))
     return twist
   }
   
   var publish = function(move){
-    // console.log(get_twist(move[0], move[1]))
+    // console.log(get_twist(move[0], move[1]).linear,get_twist(move[0], move[1]).angular)
     cmdVel.publish(get_twist(move[0], move[1]))
   };
 
@@ -95,36 +98,36 @@ NAV.controller = function(ros, name, showStatus){
     // `;
   }
   // 触发
-  document.onkeydown = (event) => {
-    var e = event || window.event || arguments.callee.caller.arguments[0];
-    if (e && e.keyCode in keyCodeMap) {  
-      // test[keyCodeMap[e.keyCode]]();
-      publish(movement_bindings[keyCodeMap[e.keyCode]]);
-      // if(showStatus){
-      //   document.querySelector("#"+keyCodeMap[e.keyCode]+"_btn").className = "focus_btn";
-      // }
-      console.log("Controller Move:",keyCodeMap[e.keyCode])
-    }
-  };
+  // document.onkeydown = (event) => {
+  //   var e = event || window.event || arguments.callee.caller.arguments[0];
+  //   if (e && e.keyCode in keyCodeMap) {  
+  //     // test[keyCodeMap[e.keyCode]]();
+  //     publish(movement_bindings[keyCodeMap[e.keyCode]]);
+  //     // if(showStatus){
+  //     //   document.querySelector("#"+keyCodeMap[e.keyCode]+"_btn").className = "focus_btn";
+  //     // }
+  //     console.log("Controller Move:",keyCodeMap[e.keyCode])
+  //   }
+  // };
 
   // 长按
-  // document.addEventListener('keypress', function(e){
-  //   var e = e || window.event || arguments.callee.caller.arguments[0];
-  //   if( kflag ){
-  //     // if (e.keyCode in keyCodeMap) {  
-  //     //   publish[keyCodeMap[e.keyCode]]();
-  //     // }  
-  //     e.preventDefault();
-  //   }else{
-  //       kflag = true;
-  //   }
-  // }, false);
-  // document.addEventListener('keyup', function(e){
-  //     kflag = false;
-  //     publish[['Stop']]()
-  // }, false);
-
-
+  document.addEventListener('keypress', function(e){
+    var e = e || window.event || arguments.callee.caller.arguments[0];
+    // console.log('e.keyCode',e.keyCode)
+    if( kflag ){
+      if (e.keyCode in keyCodeMap) {  
+        // console.log("key:",movement_bindings[keyCodeMap[e.keyCode]])
+        publish(movement_bindings[keyCodeMap[e.keyCode]]);
+      }  
+      e.preventDefault();
+    }else{
+        kflag = true;
+    }
+  }, false);
+  document.addEventListener('keyup', function(e){
+      kflag = false;
+      publish(movement_bindings['Stop']);       //松开按键就停止
+  }, false);
 };
 
 // NAV.controller.prototype.listen = (e => function(document.onkeydown.apply(NAV.controller, e){
