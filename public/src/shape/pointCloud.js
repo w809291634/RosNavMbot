@@ -1,4 +1,3 @@
-
 /**
  * A shape to draw a Point Cloud msg
  *
@@ -10,7 +9,7 @@
  *   * pointCallBack (optional) - the callBack funtion
  */
 RosCanvas.PointCloud= function(options) {
-	//	var that = this;
+		//var that = this;
 	  options = options || {};
 	  this.pointSize = options.pointSize || 0.005;
 	  this.pointColor = options.pointColor || createjs.Graphics.getRGB(255, 0, 0, 0.66);
@@ -22,15 +21,15 @@ RosCanvas.PointCloud= function(options) {
 	  this.points_pos = [];
 	  this.points_size = 640;
 	  this.pointContainer = new createjs.Container();
+		this.Stage_proto = createjs.Stage.prototype;
 	
 	  createjs.Container.call(this);
 	  this.addChild(this.pointContainer);
 	  
 	  for(var i=0; i<this.points_size;i++){
-		this.points_pos.push({x:0,y:0});
-		this.pointContainer.addChild(this.createPointShape({x:0,y:0}));
+			this.points_pos.push({x:0,y:0});
+			this.pointContainer.addChild(this.createPointShape({x:0,y:0}));
 	  }
-	
 	};
 	
 	/**
@@ -62,12 +61,12 @@ RosCanvas.PointCloud= function(options) {
 	  var index;
 	  var point;
 	  if (obj instanceof createjs.Shape) {
-		index = this.pointContainer.getChildIndex(obj);
-		point = obj;
+			index = this.pointContainer.getChildIndex(obj);
+			point = obj;
 	  }
 	  else {
-		index = obj;
-		point = this.pointContainer.getChildAt(index);
+			index = obj;
+			point = this.pointContainer.getChildAt(index);
 	  }
 	
 	  point.x = newPos.x;
@@ -86,29 +85,31 @@ RosCanvas.PointCloud= function(options) {
 	  var delta_y = 0;
 	  var delta_angle = 0;
 	  if(this.robot_pose){
-		delta_x = this.robot_pose.position.x ;
-		delta_y = this.robot_pose.position.y ;
-		delta_angle = this.robot_pose.orientation.w;
+			delta_x = this.robot_pose.position.x ;
+			delta_y = this.robot_pose.position.y ;
+			// delta_angle = -this.robot_pose.orientation.w;
+    	// change the angle
+			delta_angle = -(this.Stage_proto.rosQuaternionToGlobalTheta(this.robot_pose.orientation)*(Math.PI/180));
 	  }
-	  
+	  // console.log("delta_angle",delta_angle)
 	  for(var i=0; i<msg.ranges.length;i++){
-		var a = delta_angle +start_angle;
-		var pos = { x: msg.ranges[i]*Math.cos(a)+delta_x,
-			  y: msg.ranges[i]*Math.sin(a)+delta_y};
-		this.points_pos[i] = pos;
-		this.movePoint(i, pos);
-		start_angle = start_angle + msg.angle_increment;
+			var a = delta_angle +start_angle;
+			var pos = { x: msg.ranges[i]*Math.cos(a)+delta_x, y: msg.ranges[i]*Math.sin(a)+delta_y };
+			
+			this.movePoint(i, pos);
+			this.points_pos[i] = pos;
+			start_angle = start_angle + msg.angle_increment;
 	  }
-	
 	};
+
 	RosCanvas.PointCloud.prototype.scanPointCloud = function(msg){
+		// console.log(msg.points);
 	  if(msg.points){
-		for(var i=0; i<msg.points.length;i++){
-		  var pos = { x: msg.points[i].x,
-				y: msg.points[i].y};
-		  this.movePoint(i, pos);
-		  this.points_pos[i] = pos;
-		}
+			for(var i=0; i<msg.points.length;i++){
+				var pos = { x: msg.points[i].x,y: msg.points[i].y};
+				this.movePoint(i, pos);
+				this.points_pos[i] = pos;
+			}
 	  }
 	};
 	/**
@@ -133,6 +134,7 @@ RosCanvas.PointCloud= function(options) {
 	 * @param robot_pose info of robot pose
 	 */
 	RosCanvas.PointCloud.prototype.updateRobotPos = function(robot_pose) {
+		// console.log(robot_pose)
 	  this.robot_pose = robot_pose;
 	};
 	

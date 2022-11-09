@@ -1,4 +1,3 @@
-
 var SCAN = SCAN || {
   REVISION : '0.0.1-DEV',
   THROTTLE_RATE: 10
@@ -7,7 +6,6 @@ var SCAN = SCAN || {
 /*
 点云扫描生成
 */
-
 SCAN.cloudScan =  function(options){
   var that = this;
   options = options || {};
@@ -21,41 +19,41 @@ SCAN.cloudScan =  function(options){
 
   // Cloud INIT & Callback
   this.poindCloud = new RosCanvas.PointCloud({
-    pointCallBack:function(){}});;
+    pointCallBack:function(){},
+    pointSize: 0.05
+  });;
 
   // viewer.scene.addChild(this.poindCloud);
 
-
+  // 订阅ROS小车位置数据
   var robotListener = new ROSLIB.Topic({
     ros: ros,
     name: robot,
     messageType: 'geometry_msgs/Pose',
     throttle_rate: SCAN.THROTTLE_RATE
   });
-
+  // 处理回调函数
   robotListener.subscribe((pos) =>{
-    console.log("robot",pos)
+    // console.log("robot",pos)
     this.poindCloud.updateRobotPos(pos);
   });
 
+  // 订阅scan等数据
   var cloudListener = new ROSLIB.Topic({
     ros: ros,
     name: name,
     messageType: type,
     throttle_rate: SCAN.THROTTLE_RATE
   });
-
   cloudListener.subscribe((msg) =>{
-    console.log("scan",msg)
+    // console.log("scan",msg)
     if(!isPointedCloud){
-      this.poindCloud.scanTransform(msg);
+      this.poindCloud.scanTransform(msg);       //转换雷达/scan消息
     }else{
       this.poindCloud.scanPointCloud(msg);
     }
     this.poindCloud.updateAllPoints();
   });
-
-
 }
 
 

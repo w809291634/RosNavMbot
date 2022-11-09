@@ -41,11 +41,14 @@
     cloudScan = new SCAN.cloudScan({
       ros : ros,
       robotName : '/robot_pose',
-      // scanName: '/scan',
-      // scanType: 'sensor_msgs/LaserScan',
-      scanName: '/move_base/local_costmap/lidar_layer/clearing_endpoints',
-      scanType: 'sensor_msgs/PointCloud',
-      isPointedCloud: true
+      // 使用雷达的数据，需转换到点云
+      scanName: '/scan_web',
+      scanType: 'sensor_msgs/LaserScan',
+      isPointedCloud: false,
+      // 使用局部地图点云的数据
+      // scanName: '/move_base/local_costmap/lidar_layer/clearing_endpoints',
+      // scanType: 'sensor_msgs/PointCloud',
+      // isPointedCloud: true
     })
     
     ros.on('error', function(error) {
