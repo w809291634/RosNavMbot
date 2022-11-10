@@ -16,7 +16,6 @@ SCAN.cloudScan =  function(options){
   var isPointedCloud = options.isPointedCloud
 
   this.rootObject = options.rootObject || new createjs.Container();
-
   // Cloud INIT & Callback
   this.poindCloud = new RosCanvas.PointCloud({
     pointCallBack:function(){},
@@ -38,13 +37,27 @@ SCAN.cloudScan =  function(options){
     this.poindCloud.updateRobotPos(pos);
   });
 
+  // // 小车定位获取方法二
+  // this.pose_subscriber = new ROSLIB.Topic({
+  //   ros: ros,
+  //   name: "/amcl_pose",
+  //   messageType: '/geometry_msgs/PoseWithCovarianceStamped',
+  // });
+
+  // this.pose_subscriber.subscribe((msg) => {
+  //   this.poindCloud.updateRobotPos(msg);
+  // });
+
+
   // 订阅scan等数据
   var cloudListener = new ROSLIB.Topic({
     ros: ros,
     name: name,
     messageType: type,
-    throttle_rate: SCAN.THROTTLE_RATE
+    throttle_rate: SCAN.THROTTLE_RATE,
+    queue_size: 400,
   });
+
   cloudListener.subscribe((msg) =>{
     // console.log("scan",msg)
     if(!isPointedCloud){
@@ -55,8 +68,6 @@ SCAN.cloudScan =  function(options){
     this.poindCloud.updateAllPoints();
   });
 }
-
-
 
 /*
 打印所有信息到表格中

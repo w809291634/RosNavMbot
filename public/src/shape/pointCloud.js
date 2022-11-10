@@ -19,7 +19,7 @@ RosCanvas.PointCloud= function(options) {
 	  // Array of point shapes
 	  this.points = [];
 	  this.points_pos = [];
-	  this.points_size = 640;
+	  this.points_size = 360;											//根据雷达参数长度决定多少个点
 	  this.pointContainer = new createjs.Container();
 		this.Stage_proto = createjs.Stage.prototype;
 	
@@ -80,6 +80,7 @@ RosCanvas.PointCloud= function(options) {
 	 * @param msg Topic messages
 	 */
 	RosCanvas.PointCloud.prototype.scanTransform = function(msg) {
+		// console.log(msg);
 	  var start_angle = msg.angle_min;
 	  var delta_x = 0;
 	  var delta_y = 0;
@@ -95,9 +96,9 @@ RosCanvas.PointCloud= function(options) {
 	  for(var i=0; i<msg.ranges.length;i++){
 			var a = delta_angle +start_angle;
 			var pos = { x: msg.ranges[i]*Math.cos(a)+delta_x, y: msg.ranges[i]*Math.sin(a)+delta_y };
-			
+			// pos={x: 1, y: 0}
 			this.movePoint(i, pos);
-			this.points_pos[i] = pos;
+			// this.points_pos[i] = pos;
 			start_angle = start_angle + msg.angle_increment;
 	  }
 	};
@@ -108,7 +109,7 @@ RosCanvas.PointCloud= function(options) {
 			for(var i=0; i<msg.points.length;i++){
 				var pos = { x: msg.points[i].x,y: msg.points[i].y};
 				this.movePoint(i, pos);
-				this.points_pos[i] = pos;
+				// this.points_pos[i] = pos;
 			}
 	  }
 	};
@@ -135,7 +136,8 @@ RosCanvas.PointCloud= function(options) {
 	 */
 	RosCanvas.PointCloud.prototype.updateRobotPos = function(robot_pose) {
 		// console.log(robot_pose)
-	  this.robot_pose = robot_pose;
+	  // this.robot_pose = robot_pose.pose.pose;		//使用amcl的定位数据
+		this.robot_pose = robot_pose
 	};
 	
 	RosCanvas.PointCloud.prototype.__proto__ = createjs.Container.prototype;
