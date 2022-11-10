@@ -180,7 +180,7 @@ NAV.Navigator = function(options) {
 
   if(tfClient !== null) {
     tfClient.subscribe(robot_pose, function(tf) {
-      console.log("subscribe robot_pose tf:", tf)
+      // console.log("subscribe robot_pose tf:", tf)
       updateRobotPosition(tf.translation,tf.rotation);
     });
   } else {
@@ -291,14 +291,11 @@ NAV.Navigator = function(options) {
         mouseDown = false;
         if(this.move_flag){
           var goalPos = stage.globalToRos(event.stageX, event.stageY);
-          console.log("goalPos",goalPos);
           var goalPosVec3 = new ROSLIB.Vector3(goalPos);
-          console.log("goalPosVec3",goalPosVec3);
           xDelta =  goalPosVec3.x - positionVec3.x;
           yDelta =  goalPosVec3.y - positionVec3.y;
 
           thetaRadians  = Math.atan2(xDelta,yDelta);
-          console.log("thetaRadians",thetaRadians);
 
           if (thetaRadians >= 0 && thetaRadians <= Math.PI) {
             thetaRadians += (3 * Math.PI / 2);
@@ -315,7 +312,6 @@ NAV.Navigator = function(options) {
             position :    positionVec3,
             orientation : orientation
           });
-          console.log(pose);
           // send the goal
           sendGoal(pose);
         }
