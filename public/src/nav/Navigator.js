@@ -31,10 +31,8 @@ NAV.Navigator = function(options) {
   var withOrientation = options.withOrientation || false;
   var use_image = options.image;
   this.rootObject = options.rootObject || new createjs.Container();
-  
   this.goalMarker = null;
 
- 
   // setup the actionlib client
   var actionClient = new ROSLIB.ActionClient({
     ros : ros,
@@ -42,12 +40,12 @@ NAV.Navigator = function(options) {
     serverName : serverName
   });
     
-  
   // PATH INIT
   this.planPath = this.planPath||null;
   var pathListener = new ROSLIB.Topic({
     ros: ros,
-    name: '/move_base/NavfnROS/plan',
+    // name: '/move_base/NavfnROS/plan',
+    name: '/move_base/DWAPlannerROS/global_plan',
     messageType: 'nav_msgs/Path',
     throttle_rate: NAV.THROTTLE_RATE
   });
@@ -182,7 +180,7 @@ NAV.Navigator = function(options) {
 
   if(tfClient !== null) {
     tfClient.subscribe(robot_pose, function(tf) {
-      // console.log("subscribe robot_pose tf:", tf)
+      console.log("subscribe robot_pose tf:", tf)
       updateRobotPosition(tf.translation,tf.rotation);
     });
   } else {
@@ -194,6 +192,7 @@ NAV.Navigator = function(options) {
       throttle_rate: NAV.THROTTLE_RATE
     });
     poseListener.subscribe(function(pose) {
+      // console.log("subscribe robot_pose pose:", pose)
       updateRobotPosition(pose.position,pose.orientation);
     });
   }
@@ -225,8 +224,8 @@ NAV.Navigator = function(options) {
     var xDelta = 0;
     var yDelta = 0;
 
+    // mouse processing events
     var mouseEventHandler = function(event, mouseState) {
-
       if (mouseState === 'down'){
         // get position when mouse button is pressed down
         position = stage.globalToRos(event.stageX, event.stageY);
@@ -281,41 +280,46 @@ NAV.Navigator = function(options) {
           orientationMarker.scaleY = 1.0 / stage.scaleY;
 
           that.rootObject.addChild(orientationMarker);
+          this.move_flag = true
         }
-      } else if (mouseDown) { // mouseState === 'up'
+      } else if (mouseState === 'up') { // mouseState === 'up' //mouseDown
         // if mouse button is released
         // - get current mouse position (goalPos)
         // - calulate direction between stored <position> and goal position
         // - set pose with orientation
         // - send goal
         mouseDown = false;
+        if(this.move_flag){
+          var goalPos = stage.globalToRos(event.stageX, event.stageY);
+          console.log("goalPos",goalPos);
+          var goalPosVec3 = new ROSLIB.Vector3(goalPos);
+          console.log("goalPosVec3",goalPosVec3);
+          xDelta =  goalPosVec3.x - positionVec3.x;
+          yDelta =  goalPosVec3.y - positionVec3.y;
 
-        var goalPos = stage.globalToRos(event.stageX, event.stageY);
+          thetaRadians  = Math.atan2(xDelta,yDelta);
+          console.log("thetaRadians",thetaRadians);
 
-        var goalPosVec3 = new ROSLIB.Vector3(goalPos);
+          if (thetaRadians >= 0 && thetaRadians <= Math.PI) {
+            thetaRadians += (3 * Math.PI / 2);
+          } else {
+            thetaRadians -= (Math.PI/2);
+          }
 
-        xDelta =  goalPosVec3.x - positionVec3.x;
-        yDelta =  goalPosVec3.y - positionVec3.y;
+          var qz =  Math.sin(-thetaRadians/2.0);
+          var qw =  Math.cos(-thetaRadians/2.0);
 
-        thetaRadians  = Math.atan2(xDelta,yDelta);
+          var orientation = new ROSLIB.Quaternion({x:0, y:0, z:qz, w:qw});
 
-        if (thetaRadians >= 0 && thetaRadians <= Math.PI) {
-          thetaRadians += (3 * Math.PI / 2);
-        } else {
-          thetaRadians -= (Math.PI/2);
+          var pose = new ROSLIB.Pose({
+            position :    positionVec3,
+            orientation : orientation
+          });
+          console.log(pose);
+          // send the goal
+          sendGoal(pose);
         }
-
-        var qz =  Math.sin(-thetaRadians/2.0);
-        var qw =  Math.cos(-thetaRadians/2.0);
-
-        var orientation = new ROSLIB.Quaternion({x:0, y:0, z:qz, w:qw});
-
-        var pose = new ROSLIB.Pose({
-          position :    positionVec3,
-          orientation : orientation
-        });
-        // send the goal
-        sendGoal(pose);
+        this.move_flag = false;
       }
     };
 
